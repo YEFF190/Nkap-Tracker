@@ -2,50 +2,30 @@ import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 import 'add_transaction_screen.dart';
 import 'history_screen.dart';
+import 'stats_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final List<Transaction> transactions;
+  final Function(Transaction) onAddTransaction;
+
+  const HomeScreen({
+    super.key,
+    required this.transactions,
+    required this.onAddTransaction,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Transaction> transactions = [
-    Transaction(
-      id: '1',
-      title: 'Salary',
-      amount: 150000,
-      category: 'Income',
-      provider: 'MTN',
-      isIncome: true,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: '2',
-      title: 'Food',
-      amount: 5000,
-      category: 'Food',
-      provider: 'Orange',
-      isIncome: false,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: '3',
-      title: 'Transport',
-      amount: 500,
-      category: 'Transport',
-      provider: 'MTN',
-      isIncome: false,
-      date: DateTime.now(),
-    ),
-  ];
 
-  double get totalIncome => transactions
+  double get totalIncome => widget.transactions
       .where((t) => t.isIncome)
       .fold(0, (sum, t) => sum + t.amount);
 
-  double get totalExpenses => transactions
+  double get totalExpenses => widget.transactions
       .where((t) => !t.isIncome)
       .fold(0, (sum, t) => sum + t.amount);
 
@@ -108,8 +88,32 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.bar_chart, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StatsScreen(
+                    transactions: widget.transactions,
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -253,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => HistoryScreen(
-                            transactions: transactions,
+                            transactions: widget.transactions,
                           ),
                         ),
                       );
@@ -273,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 12),
 
-            ...transactions.map((t) => Padding(
+            ...widget.transactions.map((t) => Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20, vertical: 6),
                   child: Container(
@@ -391,9 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
           if (result != null) {
-            setState(() {
-              transactions.insert(0, result);
-            });
+            widget.onAddTransaction(result);
           }
         },
         icon: const Icon(Icons.add, color: Colors.white),

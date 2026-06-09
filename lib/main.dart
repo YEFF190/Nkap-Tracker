@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'main_navigation.dart';
 
 void main() {
   runApp(const NkapTrackerApp());
@@ -19,7 +19,7 @@ class NkapTrackerApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const MainNavigation(),
     );
   }
 }
