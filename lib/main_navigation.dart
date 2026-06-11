@@ -28,13 +28,12 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   Future<void> _loadTransactions() async {
-    final transactions =
-        await DatabaseHelper.instance.getAllTransactions();
-    setState(() {
-      _transactions = transactions;
-      _isLoading = false;
-    });
-  }
+  final transactions = await DatabaseHelper.instance.getAllTransactions();
+  setState(() {
+    _transactions = transactions; // Will be empty on fresh install 
+    _isLoading = false;
+  });
+}
 
   Future<void> _initSms() async {
   final prefs = await SharedPreferences.getInstance();

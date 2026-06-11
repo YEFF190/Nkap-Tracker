@@ -16,19 +16,31 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String _selectedProvider = 'MTN';
   bool _isIncome = false;
 
-  final List<String> _categories = [
-    'Food',
-    'Transport',
-    'Bills',
-    'School',
-    'Business',
-    'Other',
+  static const Color primaryDark = Color(0xFF0A1628);
+  static const Color primaryBlue = Color(0xFF1A3A5C);
+  static const Color accentBlue = Color(0xFF2D6A9F);
+  static const Color accentGold = Color(0xFFF0A500);
+
+  final List<Map<String, dynamic>> _categories = [
+    {'name': 'Food', 'icon': Icons.restaurant},
+    {'name': 'Transport', 'icon': Icons.directions_bus},
+    {'name': 'Bills', 'icon': Icons.receipt_long},
+    {'name': 'School', 'icon': Icons.school},
+    {'name': 'Business', 'icon': Icons.business},
+    {'name': 'Other', 'icon': Icons.category},
   ];
 
   void _submitTransaction() {
     if (_titleController.text.isEmpty || _amountController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields!')),
+        SnackBar(
+          content: const Text('Please fill all fields!'),
+          backgroundColor: Colors.red.shade400,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       return;
     }
@@ -49,12 +61,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F0),
+      backgroundColor: const Color(0xFFF4F6F9),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2D2D2D),
+        backgroundColor: primaryDark,
+        elevation: 0,
         title: const Text(
-          'Add Transaction',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          'New Transaction',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -66,15 +82,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Income / Expense toggle
+            // Income/Expense toggle
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.08),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -85,23 +101,36 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() => _isIncome = false),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
                           color: !_isIncome
-                              ? Colors.red
+                              ? const Color(0xFFFF6B6B)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Center(
-                          child: Text(
-                            '− Expense',
-                            style: TextStyle(
-                              color: !_isIncome ? Colors.white : Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_upward_rounded,
+                              color: !_isIncome
+                                  ? Colors.white
+                                  : Colors.grey,
+                              size: 18,
                             ),
-                          ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Expense',
+                              style: TextStyle(
+                                color: !_isIncome
+                                    ? Colors.white
+                                    : Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -109,23 +138,34 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() => _isIncome = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
                           color: _isIncome
-                              ? const Color(0xFF2D2D2D)
+                              ? const Color(0xFF00C48C)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Center(
-                          child: Text(
-                            '+ Income',
-                            style: TextStyle(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_downward_rounded,
                               color: _isIncome ? Colors.white : Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                              size: 18,
                             ),
-                          ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Income',
+                              style: TextStyle(
+                                color: _isIncome
+                                    ? Colors.white
+                                    : Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -136,86 +176,135 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
             const SizedBox(height: 24),
 
+            // Amount field - big and prominent
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [primaryDark, primaryBlue],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Amount',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 13,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'FCFA',
+                        style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: '0',
+                            hintStyle: TextStyle(
+                              color: Colors.white30,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
             // Title field
-            const Text('Title',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            _buildLabel('Description'),
             const SizedBox(height: 8),
-            TextField(
+            _buildTextField(
               controller: _titleController,
-              decoration: InputDecoration(
-                hintText: 'e.g. Salary, Food, Transport...',
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              hint: 'e.g. Salary, Food, Transport...',
+              icon: Icons.edit_outlined,
             ),
 
             const SizedBox(height: 20),
 
-            // Amount field
-            const Text('Amount (FCFA)',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'e.g. 5000',
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                prefixIcon: const Icon(Icons.attach_money),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Provider selector
-            const Text('Provider',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            // Provider
+            _buildLabel('Provider'),
             const SizedBox(height: 8),
             Row(
               children: ['MTN', 'Orange'].map((provider) {
                 final isSelected = _selectedProvider == provider;
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedProvider = provider),
-                    child: Container(
+                    onTap: () => setState(() => _selectedProvider = provider),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       margin: EdgeInsets.only(
                           right: provider == 'MTN' ? 8 : 0),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF2D2D2D)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        color: isSelected ? primaryDark : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF2D2D2D)
+                              ? primaryDark
                               : Colors.grey.shade200,
                         ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: primaryDark.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                )
+                              ]
+                            : [],
                       ),
-                      child: Center(
-                        child: Text(
-                          provider == 'MTN'
-                              ? '📱 MTN MoMo'
-                              : '📱 Orange Money',
-                          style: TextStyle(
-                            color:
-                                isSelected ? Colors.white : Colors.black,
-                            fontWeight: FontWeight.bold,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: provider == 'MTN'
+                                  ? const Color(0xFFFFCC00)
+                                  : const Color(0xFFFF6600),
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Text(
+                            provider == 'MTN' ? 'MTN MoMo' : 'Orange Money',
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -223,76 +312,137 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               }).toList(),
             ),
 
-            const SizedBox(height: 20),
-
-            // Category selector (only for expenses)
+            // Category (expenses only)
             if (!_isIncome) ...[
-              const Text('Category',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14)),
+              const SizedBox(height: 20),
+              _buildLabel('Category'),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              GridView.count(
+                crossAxisCount: 3,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1.8,
                 children: _categories.map((cat) {
-                  final isSelected = _selectedCategory == cat;
+                  final isSelected = _selectedCategory == cat['name'];
                   return GestureDetector(
                     onTap: () =>
-                        setState(() => _selectedCategory = cat),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        setState(() => _selectedCategory = cat['name']),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF2D2D2D)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
+                        color: isSelected ? primaryDark : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF2D2D2D)
+                              ? primaryDark
                               : Colors.grey.shade200,
                         ),
                       ),
-                      child: Text(
-                        cat,
-                        style: TextStyle(
-                          color:
-                              isSelected ? Colors.white : Colors.black,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            cat['icon'] as IconData,
+                            size: 16,
+                            color: isSelected ? accentGold : Colors.grey,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            cat['name'] as String,
+                            style: TextStyle(
+                              color:
+                                  isSelected ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 20),
             ],
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 32),
 
-            // Submit button
+            // Save button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _submitTransaction,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2D2D2D),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: accentGold,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                   ),
+                  elevation: 4,
                 ),
                 child: const Text(
                   'Save Transaction',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: primaryDark,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ),
+
+            const SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 14,
+        color: Color(0xFF0A1628),
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey.shade400),
+          prefixIcon: Icon(icon, color: const Color(0xFF2D6A9F), size: 20),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16, vertical: 16),
         ),
       ),
     );
