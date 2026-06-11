@@ -6,6 +6,7 @@ import 'screens/stats_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/database_helper.dart';
 import 'services/sms_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -36,23 +37,24 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   Future<void> _initSms() async {
-    final bool granted = await SmsService.requestPermission();
-    if (granted) {
-      final existingSms = await SmsService.readExistingSms();
-      for (final t in existingSms) {
-        // Check if already imported to avoid duplicates
-        final alreadyImported =
-            await DatabaseHelper.instance.isSmsImported(t.id);
-        if (!alreadyImported) {
-          await DatabaseHelper.instance.insertTransaction(t);
-          await DatabaseHelper.instance.markSmsImported(t.id);
-        }
-      }
-      if (existingSms.isNotEmpty) {
-        _loadTransactions();
-      }
+  final prefs = await SharedPreferences.getInstance();
+  final bool smsAlreadyImported = prefs.getBool('sms_imported') ?? false;
+  
+  if (smsAlreadyImported) return; // Don't import again!
+
+  final bool granted = await SmsService.requestPermission();
+  if (granted) {
+    final existingSms = await SmsService.readExistingSms();
+    for (final t in existingSms) {
+      await DatabaseHelper.instance.insertTransaction(t);
     }
+    if (existingSms.isNotEmpty) {
+      _loadTransactions();
+    }
+    // Mark as imported so it never runs again
+    await prefs.setBool('sms_imported', true);
   }
+}
 
   Future<void> _addTransaction(Transaction t) async {
     await DatabaseHelper.instance.insertTransaction(t);
