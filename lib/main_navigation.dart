@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'models/transaction.dart';
 import 'screens/home_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/stats_screen.dart';
 import 'screens/settings_screen.dart';
+import 'services/database_helper.dart';
+import 'services/sms_service.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -23,82 +23,42 @@ class _MainNavigationState extends State<MainNavigation> {
   void initState() {
     super.initState();
     _loadTransactions();
+    _initSms();
   }
 
-  // Load transactions from local storage
   Future<void> _loadTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? data = prefs.getString('transactions');
-    if (data != null) {
-      final List<dynamic> jsonList = jsonDecode(data);
-      setState(() {
-        _transactions = jsonList.map((json) => Transaction(
-          id: json['id'],
-          title: json['title'],
-          amount: json['amount'].toDouble(),
-          category: json['category'],
-          provider: json['provider'],
-          isIncome: json['isIncome'],
-          date: DateTime.parse(json['date']),
-        )).toList();
-      });
-    } else {
-      // Default sample transactions for first launch
-      setState(() {
-        _transactions = [
-          Transaction(
-            id: '1',
-            title: 'Salary',
-            amount: 150000,
-            category: 'Income',
-            provider: 'MTN',
-            isIncome: true,
-            date: DateTime.now(),
-          ),
-          Transaction(
-            id: '2',
-            title: 'Food',
-            amount: 5000,
-            category: 'Food',
-            provider: 'Orange',
-            isIncome: false,
-            date: DateTime.now(),
-          ),
-          Transaction(
-            id: '3',
-            title: 'Transport',
-            amount: 500,
-            category: 'Transport',
-            provider: 'MTN',
-            isIncome: false,
-            date: DateTime.now(),
-          ),
-        ];
-      });
+    final transactions =
+        await DatabaseHelper.instance.getAllTransactions();
+    setState(() {
+      _transactions = transactions;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _initSms() async {
+    final bool granted = await SmsService.requestPermission();
+    if (granted) {
+      final existingSms = await SmsService.readExistingSms();
+      for (final t in existingSms) {
+        // Check if already imported to avoid duplicates
+        final alreadyImported =
+            await DatabaseHelper.instance.isSmsImported(t.id);
+        if (!alreadyImported) {
+          await DatabaseHelper.instance.insertTransaction(t);
+          await DatabaseHelper.instance.markSmsImported(t.id);
+        }
+      }
+      if (existingSms.isNotEmpty) {
+        _loadTransactions();
+      }
     }
-    setState(() => _isLoading = false);
   }
 
-  // Save transactions to local storage
-  Future<void> _saveTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<Map<String, dynamic>> jsonList = _transactions.map((t) => {
-      'id': t.id,
-      'title': t.title,
-      'amount': t.amount,
-      'category': t.category,
-      'provider': t.provider,
-      'isIncome': t.isIncome,
-      'date': t.date.toIso8601String(),
-    }).toList();
-    await prefs.setString('transactions', jsonEncode(jsonList));
-  }
-
-  void _addTransaction(Transaction t) {
+  Future<void> _addTransaction(Transaction t) async {
+    await DatabaseHelper.instance.insertTransaction(t);
     setState(() {
       _transactions.insert(0, t);
     });
-    _saveTransactions();
   }
 
   @override

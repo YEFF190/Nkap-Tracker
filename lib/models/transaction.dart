@@ -3,7 +3,7 @@ class Transaction {
   final String title;
   final double amount;
   final String category;
-  final String provider; // MTN or Orange
+  final String provider;
   final bool isIncome;
   final DateTime date;
 

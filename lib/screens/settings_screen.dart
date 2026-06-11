@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'pin_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -8,10 +10,55 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  bool _pinEnabled = false;
   bool _budgetAlerts = true;
-  bool _darkMode = false;
   double _monthlyBudget = 100000;
-  final _budgetController = TextEditingController(text: '100000');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _pinEnabled = prefs.getBool('pin_enabled') ?? false;
+      _budgetAlerts = prefs.getBool('budget_alerts') ?? true;
+      _monthlyBudget = prefs.getDouble('monthly_budget') ?? 100000;
+    });
+  }
+
+  Future<void> _togglePin(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value) {
+      // Enable PIN — go to setup
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PinScreen(
+            isSetup: true,
+            onSuccess: () async {
+              await prefs.setBool('pin_enabled', true);
+              setState(() => _pinEnabled = true);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('PIN enabled successfully!')),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      // Disable PIN
+      await prefs.setBool('pin_enabled', false);
+      await prefs.remove('pin');
+      setState(() => _pinEnabled = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PIN disabled!')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +69,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text(
           'Settings',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
@@ -151,10 +194,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     max: 1000000,
                     divisions: 99,
                     activeColor: const Color(0xFF2D2D2D),
-                    onChanged: (val) =>
-                        setState(() => _monthlyBudget = val),
+                    onChanged: (val) async {
+                      setState(() => _monthlyBudget = val);
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setDouble('monthly_budget', val);
+                    },
                   ),
                 ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Security section
+            const Text(
+              'Security',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.lock_outline, color: Color(0xFF2D2D2D)),
+                        SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PIN Lock',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              'Protect your app with a PIN',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Switch(
+                      value: _pinEnabled,
+                      activeColor: const Color(0xFF2D2D2D),
+                      onChanged: _togglePin,
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -182,92 +292,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
-              child: Column(
-                children: [
-                  // Budget alerts toggle
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
                       children: [
-                        const Row(
+                        Icon(Icons.notifications_outlined,
+                            color: Color(0xFF2D2D2D)),
+                        SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.notifications_outlined,
-                                color: Color(0xFF2D2D2D)),
-                            SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Budget Alerts',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                Text(
-                                  'Notify when near budget limit',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              'Budget Alerts',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              'Notify when near budget limit',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
-                        Switch(
-                          value: _budgetAlerts,
-                          activeColor: const Color(0xFF2D2D2D),
-                          onChanged: (val) =>
-                              setState(() => _budgetAlerts = val),
-                        ),
                       ],
                     ),
-                  ),
-                  const Divider(height: 1),
-                  // Dark mode toggle
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.dark_mode_outlined,
-                                color: Color(0xFF2D2D2D)),
-                            SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Dark Mode',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                Text(
-                                  'Coming soon',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Switch(
-                          value: _darkMode,
-                          activeColor: const Color(0xFF2D2D2D),
-                          onChanged: (val) =>
-                              setState(() => _darkMode = val),
-                        ),
-                      ],
+                    Switch(
+                      value: _budgetAlerts,
+                      activeColor: const Color(0xFF2D2D2D),
+                      onChanged: (val) async {
+                        setState(() => _budgetAlerts = val);
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('budget_alerts', val);
+                      },
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -297,18 +363,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Column(
                 children: [
-                  _buildAboutTile(
-                      Icons.info_outline, 'Version', '1.0.0'),
+                  _buildAboutTile(Icons.info_outline, 'Version', '1.0.0'),
                   const Divider(height: 1),
-                  _buildAboutTile(
-                      Icons.flag_outlined, 'Made in', 'Cameroon 🇨🇲'),
+                  _buildAboutTile(Icons.flag_outlined, 'Made in', 'Cameroon 🇨🇲'),
                   const Divider(height: 1),
-                  _buildAboutTile(
-                      Icons.monetization_on_outlined, 'Currency', 'XAF / FCFA'),
+                  _buildAboutTile(Icons.monetization_on_outlined, 'Currency', 'XAF / FCFA'),
                 ],
               ),
             ),
-
             const SizedBox(height: 80),
           ],
         ),
@@ -337,10 +399,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
       ),

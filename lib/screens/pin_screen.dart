@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PinScreen extends StatefulWidget {
   final bool isSetup;
@@ -52,8 +53,13 @@ class _PinScreenState extends State<PinScreen> {
         });
       } else {
         if (_pin == _confirmPin) {
-          widget.onSuccess();
-        } else {
+  // Save the PIN
+  SharedPreferences.getInstance().then((prefs) {
+    prefs.setString('pin', _pin);
+  });
+  widget.onSuccess();
+}
+        else {
           setState(() {
             _pin = '';
             _confirmPin = '';

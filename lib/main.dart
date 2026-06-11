@@ -41,31 +41,23 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkPin() async {
+    await Future.delayed(const Duration(seconds: 1));
     final prefs = await SharedPreferences.getInstance();
     final String? pin = prefs.getString('pin');
+    final bool pinEnabled = prefs.getBool('pin_enabled') ?? false;
 
     if (!mounted) return;
 
-    if (pin == null) {
-      // No PIN set — go to setup
+    if (pin == null || !pinEnabled) {
+      // No PIN set or disabled — go straight to app
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => PinScreen(
-            isSetup: true,
-            onSuccess: () async {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MainNavigation(),
-                ),
-              );
-            },
-          ),
+          builder: (context) => const MainNavigation(),
         ),
       );
     } else {
-      // PIN exists — ask for it
+      // PIN exists and enabled — ask for it
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -110,6 +102,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontSize: 20,
               ),
             ),
+            SizedBox(height: 30),
+            CircularProgressIndicator(color: Colors.white),
           ],
         ),
       ),
