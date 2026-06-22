@@ -39,6 +39,9 @@ dependencies:
   permission_handler: ^11.3.1
   sqflite: ^2.3.3
   path: ^1.9.0
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.3
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
@@ -100,3 +103,4 @@ flutter_launcher_icons:
   android: true
   ios: false
   image_path: "assets/icon.png"
+

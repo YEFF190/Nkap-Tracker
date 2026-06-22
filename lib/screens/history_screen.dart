@@ -77,7 +77,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         IconButton(
                           icon: const Icon(Icons.arrow_back,
                               color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : null,
                         ),
                         const Text(
                           'Transaction History',

@@ -1,3 +1,15 @@
+//buildscript FIRST — declares tools needed before anything else
+buildscript {
+    repositories {
+        google()        
+        mavenCentral() 
+    }
+    dependencies {
+        classpath("com.google.gms:google-services:4.4.2")
+    }
+}
+
+// Then everything else below
 allprojects {
     repositories {
         google()

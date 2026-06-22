@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "69190949719",
+    "project_id": "nkap-tracker-b2a6c",
+    "storage_bucket": "nkap-tracker-b2a6c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:69190949719:android:090579074fffe5967dfc12",
+        "android_client_info": {
+          "package_name": "com.example.momo_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAktbmAPT03PEegE72OH3t75me6zktfteI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -86,7 +86,7 @@ class _StatsScreenState extends State<StatsScreen> {
                           IconButton(
                             icon: const Icon(Icons.arrow_back,
                                 color: Colors.white),
-                            onPressed: () => Navigator.pop(context),
+                           onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : null,
                           ),
                           const Text(
                             'Statistics',

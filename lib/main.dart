@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main_navigation.dart';
 import 'screens/pin_screen.dart';
+import 'screens/login_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const NkapTrackerApp());
 }
 
@@ -21,7 +26,31 @@ class NkapTrackerApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const SplashScreen(),
+      home: StreamBuilder<User?>(
+        // StreamBuilder listens to Firebase 24/7
+        // Every time login state changes, it rebuilds automatically
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+
+          // Firebase is still connecting — show loading spinner
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              backgroundColor: Color(0xFF0A1628),
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFFF0A500)),
+              ),
+            );
+          }
+
+          // snapshot.data == null means NO user is logged in
+          if (snapshot.data == null) {
+            return const LoginScreen(); // → show Login
+          }
+
+          // A user IS logged in → continue to app
+          return const SplashScreen(); // → PIN check → Home
+        },
+      ),
     );
   }
 }
@@ -49,15 +78,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (pin == null || !pinEnabled) {
-      // No PIN set or disabled — go straight to app
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const MainNavigation(),
-        ),
+        MaterialPageRoute(builder: (context) => const MainNavigation()),
       );
     } else {
-      // PIN exists and enabled — ask for it
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -81,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFF2D2D2D),
+      backgroundColor: Color(0xFF0A1628),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -97,13 +122,10 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(height: 16),
             Text(
               'Nkap Tracker',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 20,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 20),
             ),
             SizedBox(height: 30),
-            CircularProgressIndicator(color: Colors.white),
+            CircularProgressIndicator(color: Color(0xFFF0A500)),
           ],
         ),
       ),

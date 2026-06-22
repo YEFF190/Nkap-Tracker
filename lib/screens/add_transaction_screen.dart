@@ -74,7 +74,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : null,
         ),
       ),
       body: SingleChildScrollView(
