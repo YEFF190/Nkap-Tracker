@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/transaction.dart';
+import '../services/firestore_service.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -30,7 +31,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     {'name': 'Other', 'icon': Icons.category},
   ];
 
-  void _submitTransaction() {
+  Future<void> _submitTransaction() async {
     if (_titleController.text.isEmpty || _amountController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -46,18 +47,39 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
 
     final transaction = Transaction(
-      id: const Uuid().v4(),
-      title: _titleController.text,
-      amount: double.parse(_amountController.text),
-      category: _isIncome ? 'Income' : _selectedCategory,
-      provider: _selectedProvider,
-      isIncome: _isIncome,
-      date: DateTime.now(),
-    );
+  id: const Uuid().v4(),
+  title: _titleController.text,
+  amount: double.parse(_amountController.text),
+  category: _isIncome ? 'Income' : _selectedCategory,
+  provider: _selectedProvider,
+  isIncome: _isIncome,
+  date: DateTime.now(),
+   );
 
+// Save to Firestore cloud ← NEW
+try {
+  await FirestoreService.instance.insertTransaction(transaction);
+  // Success — go back to home screen
+  if (mounted) Navigator.pop(context, transaction);
+} catch (e) {
+  // Firestore failed — still save locally, warn the user
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Saved locally. Will sync to cloud when internet is available.',
+        ),
+        backgroundColor: Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
     Navigator.pop(context, transaction);
   }
-
+}
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

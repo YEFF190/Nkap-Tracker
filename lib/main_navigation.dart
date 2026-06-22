@@ -7,6 +7,7 @@ import 'screens/settings_screen.dart';
 import 'services/database_helper.dart';
 import 'services/sms_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'services/firestore_service.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -27,12 +28,41 @@ class _MainNavigationState extends State<MainNavigation> {
     _initSms();
   }
 
-  Future<void> _loadTransactions() async {
-  final transactions = await DatabaseHelper.instance.getAllTransactions();
+ Future<void> _loadTransactions() async {
+  // Step 1 — Load local SQLite first (instant, no internet needed)
+  final localTransactions = await DatabaseHelper.instance.getAllTransactions();
   setState(() {
-    _transactions = transactions; // Will be empty on fresh install 
+    _transactions = localTransactions; // show immediately
     _isLoading = false;
   });
+
+  // Step 2 — Then load from Firestore in background
+  try {
+    final cloudTransactions = await FirestoreService.instance.getAllTransactions();
+    
+    // Step 3 — Merge: combine both lists without duplicates
+    // We use the transaction ID to detect duplicates
+    final localIds = localTransactions.map((t) => t.id).toSet();
+    final newFromCloud = cloudTransactions
+        .where((t) => !localIds.contains(t.id))
+        .toList();
+
+    // Step 4 — Save cloud-only transactions to local SQLite too
+    for (final t in newFromCloud) {
+      await DatabaseHelper.instance.insertTransaction(t);
+    }
+
+    // Step 5 — Update screen with complete merged list
+    if (newFromCloud.isNotEmpty) {
+      final allTransactions = await DatabaseHelper.instance.getAllTransactions();
+      setState(() {
+        _transactions = allTransactions;
+      });
+    }
+  } catch (e) {
+    // No internet — local data already showing, no problem!
+    debugPrint('Firestore unavailable: $e');
+  }
 }
 
   Future<void> _initSms() async {
