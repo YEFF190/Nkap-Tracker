@@ -6,6 +6,10 @@ import 'main_navigation.dart';
 import 'screens/pin_screen.dart';
 import 'screens/login_screen.dart';
 
+// GlobalKey allows us to navigate from ANYWHERE in the app
+// even from settings which is deep inside the widget tree
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -20,6 +24,7 @@ class NkapTrackerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Nkap Tracker',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey, // ← register the global key
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF2D2D2D),
@@ -27,12 +32,8 @@ class NkapTrackerApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: StreamBuilder<User?>(
-        // StreamBuilder listens to Firebase 24/7
-        // Every time login state changes, it rebuilds automatically
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-
-          // Firebase is still connecting — show loading spinner
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               backgroundColor: Color(0xFF0A1628),
@@ -41,14 +42,8 @@ class NkapTrackerApp extends StatelessWidget {
               ),
             );
           }
-
-          // snapshot.data == null means NO user is logged in
-          if (snapshot.data == null) {
-            return const LoginScreen(); // → show Login
-          }
-
-          // A user IS logged in → continue to app
-          return const SplashScreen(); // → PIN check → Home
+          if (snapshot.data == null) return const LoginScreen();
+          return const SplashScreen();
         },
       ),
     );

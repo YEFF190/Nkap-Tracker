@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'pin_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'pin_screen.dart';
+import '../main.dart'; // ← to access navigatorKey
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -80,62 +78,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _logout() async {
-  // Show confirmation dialog first
-  // We don't want user to logout accidentally
-  final bool? confirm = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      title: const Text(
-        'Logout',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: primaryDark,
+    // Show confirmation dialog
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-      ),
-      content: const Text(
-        'Are you sure you want to logout? Your data is safely saved in the cloud.',
-        style: TextStyle(color: Colors.grey),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false), // cancel
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.grey),
+        title: const Text(
+          'Logout',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: primaryDark,
           ),
         ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true), // confirm
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        content: const Text(
+          'Are you sure you want to logout? Your data is safely saved in the cloud.',
+          style: TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
             ),
           ),
-          child: const Text(
-            'Logout',
-            style: TextStyle(color: Colors.white),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
 
-  // User pressed Cancel — do nothing
-  if (confirm != true) return;
+    if (confirm != true) return;
 
-  // Clear PIN from local storage
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('pin');
-  await prefs.remove('pin_enabled');
+    // Clear PIN from local storage
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pin');
+    await prefs.remove('pin_enabled');
 
-  // Sign out from Firebase
-  // This triggers StreamBuilder in main.dart → redirects to LoginScreen
-  await FirebaseAuth.instance.signOut();
-}
+    // Sign out from Firebase
+    await FirebaseAuth.instance.signOut();
+
+    // Use navigatorKey to navigate from anywhere in the app
+    // pushNamedAndRemoveUntil removes ALL screens → clean slate
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      '/',
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,28 +206,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ),
                             const SizedBox(width: 16),
-  Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Text(
-      // Shows the logged in user's email
-      FirebaseAuth.instance.currentUser?.email ?? 'User',
-      style: const TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
-      ),
-    ),
-    const SizedBox(height: 4),
-    const Text(
-      'Personal Finance Manager 🇨🇲',
-      style: TextStyle(
-        color: Colors.white60,
-        fontSize: 13,
-      ),
-    ),
-  ],
-                           ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  FirebaseAuth.instance.currentUser?.email ?? 'User',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Personal Finance Manager 🇨🇲',
+                                  style: TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -374,58 +375,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
+
+                  const SizedBox(height: 24),
+
                   // Account section
-_buildSectionTitle('Account'),
-const SizedBox(height: 12),
-_buildCard(
-  child: GestureDetector(
-    onTap: _logout,
-    child: Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(
-            Icons.logout,
-            color: Colors.red,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 12),
-        const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Logout',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                color: Colors.red,
-              ),
-            ),
-            Text(
-              'Sign out of your account',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        const Icon(
-          Icons.arrow_forward_ios,
-          color: Colors.red,
-          size: 14,
-        ),
-      ],
-    ),
-  ),
-),
-const SizedBox(height: 80),
+                  _buildSectionTitle('Account'),
+                  const SizedBox(height: 12),
+                  _buildCard(
+                    child: GestureDetector(
+                      onTap: _logout,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.logout,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Logout',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              Text(
+                                'Sign out of your account',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.red,
+                            size: 14,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),

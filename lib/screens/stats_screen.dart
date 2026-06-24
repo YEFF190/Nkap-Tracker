@@ -63,89 +63,79 @@ class _StatsScreenState extends State<StatsScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header
+            // Header — floating card
             Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
+              margin: const EdgeInsets.fromLTRB(16, 40, 16, 0),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [primaryDark, primaryBlue, accentBlue],
                 ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back,
-                                color: Colors.white),
-                           onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : null,
-                          ),
-                          const Text(
-                            'Statistics',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Analytics & Stats',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
-                      const SizedBox(height: 16),
-                      // Period selector
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: ['This Month', 'Last Month', 'All Time']
-                              .map((period) {
-                            final isSelected = _selectedPeriod == period;
-                            return GestureDetector(
-                              onTap: () => setState(
-                                  () => _selectedPeriod = period),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                margin: const EdgeInsets.only(right: 8),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.white.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  period,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? primaryDark
-                                        : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: ['This Month', 'Last Month', 'All Time']
+                            .map((period) {
+                          final isSelected = _selectedPeriod == period;
+                          return GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedPeriod = period),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                period,
+                                style: TextStyle(
+                                  color: isSelected ? primaryDark : Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            ), // ← closes Container
 
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // Summary cards
                   Row(
                     children: [
                       Expanded(
@@ -170,7 +160,6 @@ class _StatsScreenState extends State<StatsScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Savings rate card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -224,7 +213,6 @@ class _StatsScreenState extends State<StatsScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Pie chart
                   if (categories.isNotEmpty) ...[
                     _buildSectionTitle('Expenses by Category'),
                     const SizedBox(height: 16),
@@ -254,14 +242,11 @@ class _StatsScreenState extends State<StatsScreen> {
                                     .map((entry) {
                                   final index = entry.key;
                                   final cat = entry.value;
-                                  final percentage =
-                                      (cat.value / total * 100);
+                                  final percentage = (cat.value / total * 100);
                                   return PieChartSectionData(
                                     value: cat.value,
-                                    title:
-                                        '${percentage.toStringAsFixed(0)}%',
-                                    color: _chartColors[
-                                        index % _chartColors.length],
+                                    title: '${percentage.toStringAsFixed(0)}%',
+                                    color: _chartColors[index % _chartColors.length],
                                     radius: 80,
                                     titleStyle: const TextStyle(
                                       color: Colors.white,
@@ -293,8 +278,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                     width: 12,
                                     height: 12,
                                     decoration: BoxDecoration(
-                                      color: _chartColors[
-                                          index % _chartColors.length],
+                                      color: _chartColors[index % _chartColors.length],
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -314,7 +298,6 @@ class _StatsScreenState extends State<StatsScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Bar chart
                   _buildSectionTitle('Income vs Expenses'),
                   const SizedBox(height: 16),
                   Container(
@@ -345,10 +328,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                 BarChartRodData(
                                   toY: totalIncome,
                                   gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF00C48C),
-                                      Color(0xFF00A376)
-                                    ],
+                                    colors: [Color(0xFF00C48C), Color(0xFF00A376)],
                                     begin: Alignment.bottomCenter,
                                     end: Alignment.topCenter,
                                   ),
@@ -363,10 +343,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                 BarChartRodData(
                                   toY: totalExpenses,
                                   gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFFF6B6B),
-                                      Color(0xFFFF4444)
-                                    ],
+                                    colors: [Color(0xFFFF6B6B), Color(0xFFFF4444)],
                                     begin: Alignment.bottomCenter,
                                     end: Alignment.topCenter,
                                   ),
@@ -385,16 +362,12 @@ class _StatsScreenState extends State<StatsScreen> {
                                     case 0:
                                       return const Padding(
                                         padding: EdgeInsets.only(top: 8),
-                                        child: Text('Income',
-                                            style:
-                                                TextStyle(fontSize: 12)),
+                                        child: Text('Income', style: TextStyle(fontSize: 12)),
                                       );
                                     case 1:
                                       return const Padding(
                                         padding: EdgeInsets.only(top: 8),
-                                        child: Text('Expenses',
-                                            style:
-                                                TextStyle(fontSize: 12)),
+                                        child: Text('Expenses', style: TextStyle(fontSize: 12)),
                                       );
                                     default:
                                       return const Text('');
